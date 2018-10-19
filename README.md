@@ -1,3 +1,3 @@
 # Datenverarbeitung
 
-Framework: Play
+Framework: Scalatra
