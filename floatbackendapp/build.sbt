@@ -18,6 +18,7 @@ libraryDependencies ++= Seq(
   "javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided",
   "org.scalatra" %% "scalatra-json" % ScalatraVersion,
   "org.json4s"   %% "json4s-jackson" % "3.5.2",
+  "org.mongodb.scala" %% "mongo-scala-driver" % "2.4.2"
 )
 
 enablePlugins(SbtTwirl)
