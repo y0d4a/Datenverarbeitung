@@ -21,8 +21,8 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
   val spark: SparkSession = SparkSession.builder()
     .master("local")
     .appName("MongoSparkConnectorIntro")
-    .config("spark.mongodb.input.uri", "mongodb://127.0.0.1/argo_test.float_data")
-    .config("spark.mongodb.output.uri", "mongodb://127.0.0.1/argo_test.float_data")
+    .config("spark.mongodb.input.uri", "mongodb://127.0.0.1/local.float_data")
+    .config("spark.mongodb.output.uri", "mongodb://127.0.0.1/local.float_data")
     .getOrCreate()
 
   val sc: SparkContext = spark.sparkContext
@@ -39,6 +39,13 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
     contentType = formats("json")
   }
 
+
+  get("/") {
+    val a =rdd.take(rdd.count().asInstanceOf[Int])
+    val coordinates = a.map(row => row.getStruct(1).getStruct(0).getList(0))
+    objectMapper.writeValueAsString(coordinates)
+  }
+
   get("/taketen") {
     //val features =(rdd.first().get("features").asInstanceOf[java.util.ArrayList[Document]].asScala)
     //features.map(doc => objectMapper.writeValueAsString(doc.get("geometry")))
@@ -51,6 +58,5 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
     val coordinates = a.map(row => row.getStruct(2).getStruct(0).getList(0))
     objectMapper.writeValueAsString(coordinates)
   }
-
 
 }
