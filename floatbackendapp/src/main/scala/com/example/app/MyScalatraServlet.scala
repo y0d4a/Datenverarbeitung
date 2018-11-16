@@ -1,58 +1,51 @@
 package com.example.app
 
-import org.json4s.{DefaultFormats, Formats}
-import org.mongodb.scala._
-import org.mongodb.scala.model.Filters._
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.mongodb.spark.MongoSpark
+import com.mongodb.spark.config._
+import com.mongodb.spark.rdd.MongoRDD
+import org.apache.spark.{SparkConf, SparkContext}
+import org.bson.Document
 import org.scalatra._
+// JSON-related libraries
+import org.json4s.{DefaultFormats, Formats}
+// JSON handling support from Scalatra
+import org.scalatra.json._
 import org.scalatra.json.JacksonJsonSupport
+import org.apache.spark.sql.SparkSession
+import collection.JavaConverters._
+
+
 
 class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
 
-  /**
-    * The mongoClient connects to MongoDB's server. The constructor is empty, meaning that it connects to localhost on 27017
-    */
-  val mongoClient: MongoClient = MongoClient()
+  val spark: SparkSession = SparkSession.builder()
+    .master("local")
+    .appName("MongoSparkConnectorIntro")
+    .config("spark.mongodb.input.uri", "mongodb://127.0.0.1/argo_test.float_data")
+    .config("spark.mongodb.output.uri", "mongodb://127.0.0.1/argo_test.float_data")
+    .getOrCreate()
 
-  /**
-    * The database registered in the localhost mdb instance
-    */
-  val database: MongoDatabase = mongoClient.getDatabase("argo_test")
+  val sc: SparkContext = spark.sparkContext
 
-  /**
-    * The collection (like a table in a relational db) that stores the fake argo data.
-    */
-  val argo_collection: MongoCollection[Document] = database.getCollection("float_data")
+  val rdd: MongoRDD[Document] = MongoSpark.load(sc)
 
- 
-  get("/last_seen") {
-    val observable: Observable[Document] = argo_collection.find()
-    
-    val l: List[Document] = Nil
-    val observer: Observer[Document] = new Observer[Document] {
-      override def onNext(result: Document): Unit = result::l
-
-      override def onError(e: Throwable): Unit = println("Error occured")
-
-      override def onComplete(): Unit = println("Query executed")
-    }
-
-    observable.subscribe(observer)
-    l.foreach(docu => println(docu.toJson()))
-    println("test")
-  }
-
-
-
-  /**
-    * Allows the controller to automatically convert Scalatra action results to JSON.
-    */
+  // Sets up automatic case class to JSON output serialization, required by
+  // the JValueResult trait.
   protected implicit lazy val jsonFormats: Formats = DefaultFormats.withBigDecimal
 
-  /**
-    * Content type for all actions inside this controller will be formatted to JSON.
-    */
+  implicit val objectMapper: ObjectMapper = new ObjectMapper()
+
   before() {
     contentType = formats("json")
   }
 
+  get("/") {
+    //val features =(rdd.first().get("features").asInstanceOf[java.util.ArrayList[Document]].asScala)
+    //features.map(doc => objectMapper.writeValueAsString(doc.get("geometry")))
+    val x = rdd.take(10).map(X=>X.get("features")).map(X=>X.toString)
+    objectMapper.writeValueAsString(x)
+  }
+
+  
 }
