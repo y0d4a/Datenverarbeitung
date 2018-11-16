@@ -2,11 +2,12 @@ package com.example.app
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.mongodb.spark.MongoSpark
-import com.mongodb.spark.config._
-import com.mongodb.spark.rdd.MongoRDD
+import org.apache.spark.sql.catalyst.encoders.RowEncoder
+import org.apache.spark.sql.{DataFrame, Encoders, Row}
 import org.apache.spark.{SparkConf, SparkContext}
-import org.bson.Document
 import org.scalatra._
+
+import scala.reflect.internal.util.TableDef.Column
 // JSON-related libraries
 import org.json4s.{DefaultFormats, Formats}
 // JSON handling support from Scalatra
@@ -14,21 +15,18 @@ import org.scalatra.json._
 import org.scalatra.json.JacksonJsonSupport
 import org.apache.spark.sql.SparkSession
 import collection.JavaConverters._
-
-
-
 class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
 
   val spark: SparkSession = SparkSession.builder()
     .master("local")
     .appName("MongoSparkConnectorIntro")
-    .config("spark.mongodb.input.uri", "mongodb://127.0.0.1/argo_test.float_data")
-    .config("spark.mongodb.output.uri", "mongodb://127.0.0.1/argo_test.float_data")
+    .config("spark.mongodb.input.uri", "mongodb://127.0.0.1/local.float_data")
+    .config("spark.mongodb.output.uri", "mongodb://127.0.0.1/local.float_data")
     .getOrCreate()
 
   val sc: SparkContext = spark.sparkContext
 
-  val rdd: MongoRDD[Document] = MongoSpark.load(sc)
+  val rdd: DataFrame = MongoSpark.load(spark)
 
   // Sets up automatic case class to JSON output serialization, required by
   // the JValueResult trait.
@@ -41,11 +39,9 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
   }
 
   get("/") {
-    //val features =(rdd.first().get("features").asInstanceOf[java.util.ArrayList[Document]].asScala)
-    //features.map(doc => objectMapper.writeValueAsString(doc.get("geometry")))
-    val x = rdd.take(10).map(X=>X.get("features")).map(X=>X.toString)
-    objectMapper.writeValueAsString(x)
+    val a =rdd.take(rdd.count().asInstanceOf[Int])
+    val coordinates = a.map(row => row.getStruct(1).getStruct(0).getList(0))
+    objectMapper.writeValueAsString(coordinates)
   }
 
-  
 }
