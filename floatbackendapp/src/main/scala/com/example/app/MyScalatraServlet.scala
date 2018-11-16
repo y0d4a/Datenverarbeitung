@@ -15,6 +15,7 @@ import org.scalatra.json._
 import org.scalatra.json.JacksonJsonSupport
 import org.apache.spark.sql.SparkSession
 import collection.JavaConverters._
+
 class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
 
   val spark: SparkSession = SparkSession.builder()
@@ -38,9 +39,23 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
     contentType = formats("json")
   }
 
+
   get("/") {
     val a =rdd.take(rdd.count().asInstanceOf[Int])
     val coordinates = a.map(row => row.getStruct(1).getStruct(0).getList(0))
+    objectMapper.writeValueAsString(coordinates)
+  }
+
+  get("/taketen") {
+    //val features =(rdd.first().get("features").asInstanceOf[java.util.ArrayList[Document]].asScala)
+    //features.map(doc => objectMapper.writeValueAsString(doc.get("geometry")))
+    val x = rdd.take(10).map(X=>X.getStruct(1)).map(X=>X.toString)
+    objectMapper.writeValueAsString(x)
+  }
+
+  get("/all") {
+    val a =rdd.take(rdd.count().asInstanceOf[Int])
+    val coordinates = a.map(row => row.getStruct(2).getStruct(0).getList(0))
     objectMapper.writeValueAsString(coordinates)
   }
 
