@@ -1,5 +1,9 @@
 package com.example.app
 
+import java.time.{LocalDateTime, ZoneId}
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.mongodb.spark.MongoSpark
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
@@ -74,4 +78,17 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
     all.map(row => row.getStruct(1).getStruct(0).getList(0)).map(l => Coordinates(l.get(0), l.get(1))).toList
   }
 
+  /**
+    * GET Request that returns all the last seen date and time strings in a list
+    *
+    */
+  // TODO: The current mapping returns the time as in the mongodb (00:00:00), which is false. We need to find a way to extract the real time values
+  get("/last_seen") {
+    val all = rdd.take(rdd.count().asInstanceOf[Int])
+
+    val formatter = DateTimeFormatter.ofPattern("EEE, d MMM yyyy HH:mm:ss z", Locale.US).withZone(ZoneId.of("GMT"))
+    all.map(row => row.getStruct(1).getStruct(1).getString(2))
+      .map(str => LocalDateTime.parse(str, formatter))
+      .map(datetime => formatter.format(datetime)).toList
+  }
 }
