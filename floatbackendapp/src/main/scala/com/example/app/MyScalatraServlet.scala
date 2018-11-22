@@ -89,5 +89,8 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
     all.map(row => row.getStruct(1).getStruct(1).getString(2))
       .map(str => LocalDateTime.parse(str, formatter))
       .map(datetime => formatter.format(datetime)).toList
+
+    // This is also usable, because we cannot consume the real times into the objects, so formatting the string produces unnecessary overhead
+    // all.map(row => row.getStruct(1).getStruct(1).getString(2)).toList
   }
 }
