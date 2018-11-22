@@ -40,6 +40,8 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
     */
   val rdd: DataFrame = MongoSpark.load(spark)
 
+  private val all = rdd.take(rdd.count().asInstanceOf[Int])
+
   /**
     * Case class that represents the coordinates of the floats
     * @param longitude longitude of the float
@@ -74,7 +76,6 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
     * GET Request that returns all coordinates in a list of Coordinates Objects
     */
   get("/coordinates") {
-    val all = rdd.take(rdd.count().asInstanceOf[Int])
     all.map(row => row.getStruct(1).getStruct(0).getList(0)).map(l => Coordinates(l.get(0), l.get(1))).toList
   }
 
@@ -84,8 +85,6 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
     */
   // TODO: The current mapping returns the time as in the mongodb (00:00:00), which is false. We need to find a way to extract the real time values
   get("/last_seen") {
-    val all = rdd.take(rdd.count().asInstanceOf[Int])
-
     val formatter = DateTimeFormatter.ofPattern("EEE, d MMM yyyy HH:mm:ss z", Locale.US).withZone(ZoneId.of("GMT"))
     all.map(row => row.getStruct(1).getStruct(1).getString(2))
       .map(str => LocalDateTime.parse(str, formatter))
