@@ -18,6 +18,9 @@ import collection.JavaConverters._
 
 class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
 
+  /**
+    * The spark session with the needed configuration to write and read from the mongodb databank
+    */
   val spark: SparkSession = SparkSession.builder()
     .master("local")
     .appName("MongoSparkConnectorIntro")
@@ -27,23 +30,33 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
 
   val sc: SparkContext = spark.sparkContext
 
+  /**
+    * The rdd object which accumulates the data from the database
+    * It returns a DataFrame object, which we then manipulate to gather Row objects that are then processed into JSON
+    */
   val rdd: DataFrame = MongoSpark.load(spark)
+
+  /**
+    * Case class that represents the coordinates of the floats
+    * @param longitude longitude of the float
+    * @param latitude latitude of the float
+    */
+  case class Coordinates(longitude: Double, latitude: Double)
 
   // Sets up automatic case class to JSON output serialization, required by
   // the JValueResult trait.
   protected implicit lazy val jsonFormats: Formats = DefaultFormats.withBigDecimal
 
+  /**
+    * object mapper to transform certain objects that aren't formatted properly to JSON
+    */
   implicit val objectMapper: ObjectMapper = new ObjectMapper()
 
+  /**
+    * The content type of the HTTP response is always adjusted to JSON
+    */
   before() {
     contentType = formats("json")
-  }
-
-
-  get("/") {
-    val a =rdd.take(rdd.count().asInstanceOf[Int])
-    val coordinates = a.map(row => row.getStruct(1).getStruct(0).getList(0))
-    objectMapper.writeValueAsString(coordinates)
   }
 
   get("/taketen") {
@@ -53,10 +66,12 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
     objectMapper.writeValueAsString(x)
   }
 
-  get("/all") {
-    val a =rdd.take(rdd.count().asInstanceOf[Int])
-    val coordinates = a.map(row => row.getStruct(2).getStruct(0).getList(0))
-    objectMapper.writeValueAsString(coordinates)
+  /**
+    * GET Request that returns all coordinates in a list of Coordinates Objects
+    */
+  get("/coordinates") {
+    val all = rdd.take(rdd.count().asInstanceOf[Int])
+    all.map(row => row.getStruct(1).getStruct(0).getList(0)).map(l => Coordinates(l.get(0), l.get(1))).toList
   }
 
 }
