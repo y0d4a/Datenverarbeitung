@@ -49,4 +49,8 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
     processor.extractCoordinates(processor.retrieveTimedFloats(processor.df))
   }
 
+  get("/dates") {
+    processor.parseJuldToCald(processor.retrieveTimedFloats(processor.df))
+  }
+
 }

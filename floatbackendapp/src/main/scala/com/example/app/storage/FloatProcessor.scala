@@ -1,5 +1,9 @@
 package com.example.app.storage
 
+import java.time.{LocalDate, ZonedDateTime}
+import java.time.format.DateTimeFormatter
+import java.time.temporal.JulianFields
+
 import com.example.app.model.TimedFloat
 import com.mongodb.spark.MongoSpark
 import com.mongodb.spark.sql.fieldTypes.ObjectId
@@ -58,6 +62,36 @@ class FloatProcessor {
     source.foldRight(Map.empty[String, List[(Double, Double)]])((floats, acc) =>
       acc.updated(floats._1, floats._2.flatMap(float => List((float.getLongitude, float.getLatitude)))))
   }
+
+  /**
+    * Converts the given julian Date to a gregorian date
+    * READ ! =====> This method produces years like 4645, which shouldn't be the case, BUT if you use a normal internet converter, it
+    * will give you the exact same value, so I assume the data inside the database is wrong
+    * Internet Converter you can test with : https://www.aavso.org/jd-calculator
+    * @param julianDate the julian date to be converted
+    * @return a string representation of the converted date
+    */
+  private def utils_julianDateToZonedDateTime(julianDate: Double): String = {
+    val julianDayNumber = math.floor(julianDate).toLong
+    val julianDayFraction = julianDate - julianDayNumber
+    val julianDayFractionToNanoSeconds = math.floor(julianDayFraction * 24 * 60 * 60 * math.pow(10, 9)).toLong
+
+    val bcEraDateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:z:G")
+    // Julian Date starts on 12:00, November 24, 4714 BC of Gregorian Calendar.
+    val julianDateStartDate = ZonedDateTime.parse("4714-11-24 12:00:00:GMT:BC", bcEraDateFormat)
+
+    DateTimeFormatter.ofPattern("dd/MM/yyyy - hh:mm:ss").format(julianDateStartDate.plusDays(julianDayNumber).plusNanos(julianDayFractionToNanoSeconds))
+  }
+
+  /**
+    * Parses the julian date to a gregorian one with usage of our utility function
+    * @param source the map which contains all the dates that need to be parsed
+    * @return a map with the float serial number as key and the date mapped to it
+    */
+  def parseJuldToCald(source: Map[String, List[TimedFloat]]): Map[String, List[String]] = {
+    source.foldRight(Map.empty[String, List[String]])((floats, acc) =>
+      acc.updated(floats._1, floats._2.flatMap(float => List(utils_julianDateToZonedDateTime(float.getJuld)))))
+  }
 }
 
 object Main {
@@ -65,6 +99,7 @@ object Main {
     val a: FloatProcessor = new FloatProcessor
     val map = a.retrieveTimedFloats(a.df)
     val coordinates = a.extractCoordinates(map)
+    val dates = a.parseJuldToCald(map)
     a.df.printSchema()
   }
 }
