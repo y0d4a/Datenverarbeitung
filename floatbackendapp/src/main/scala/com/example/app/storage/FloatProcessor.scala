@@ -92,6 +92,24 @@ class FloatProcessor {
     source.foldRight(Map.empty[String, List[String]])((floats, acc) =>
       acc.updated(floats._1, floats._2.flatMap(float => List(utils_julianDateToZonedDateTime(float.getJuld)))))
   }
+
+  /**
+    * Returns the measurements of the floats based on the measurement specified (temp, salt or pressure)
+    * @param source the timedfloats retrieved from the database
+    * @param measurement the type of measurement that the user will request
+    * @return a map containing a list of arrays of the measurements and the float id as key
+    */
+  def getMeasurement(source: Map[String, List[TimedFloat]], measurement: String): Map[String, List[Array[Double]]] = {
+    measurement match {
+      case "temp" => source.foldRight(Map.empty[String, List[Array[Double]]])((floats, acc) =>
+        acc.updated(floats._1, acc.getOrElse(floats._1, floats._2.flatMap(float => List(float.getTemperature)))))
+      case "salt" => source.foldRight(Map.empty[String, List[Array[Double]]])((floats, acc) =>
+        acc.updated(floats._1, acc.getOrElse(floats._1, floats._2.flatMap(float => List(float.getPsal)))))
+      case "pres" => source.foldRight(Map.empty[String, List[Array[Double]]])((floats, acc) =>
+        acc.updated(floats._1, acc.getOrElse(floats._1, floats._2.flatMap(float => List(float.getPressure)))))
+    }
+  }
+
 }
 
 object Main {

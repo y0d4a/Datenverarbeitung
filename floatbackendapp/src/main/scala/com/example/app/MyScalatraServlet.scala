@@ -53,4 +53,16 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
     processor.parseJuldToCald(processor.retrieveTimedFloats(processor.df))
   }
 
+  get("/temperature") {
+    processor.getMeasurement(processor.retrieveTimedFloats(processor.df), "temp")
+  }
+
+  get("/salt") {
+    processor.getMeasurement(processor.retrieveTimedFloats(processor.df), "salt")
+  }
+
+  get("/pressure") {
+    processor.getMeasurement(processor.retrieveTimedFloats(processor.df), "pres")
+  }
+
 }
