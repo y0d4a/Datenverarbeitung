@@ -10,7 +10,7 @@ class FloatProcessor {
   /**
     * The spark session with the needed configuration to write and read from the mongodb databank
     */
-  val spark: SparkSession = SparkSession.builder().master("local")
+  val spark: SparkSession = SparkSession.builder().master("local[*]")
     .appName("MongoSparkConnectorIntro")
     .config("spark.mongodb.input.uri", "mongodb://abteilung6.com/ECCO.ECCO_grouped")
     .config("spark.mongodb.output.uri", "mongodb://abteilung6.com/ECCO.ECCO_grouped")
@@ -45,8 +45,8 @@ class FloatProcessor {
     *         of the frontend
     */
   def retrieveCoordinatesAndIDs: Ep1DataJsonWrapper = {
-    val a = processCoordinatesAndIDs(main_dataset).dropDuplicates(Array("id")).collect().toList
-    Ep1DataJsonWrapper(processCoordinatesAndIDs(main_dataset).collect().toList)
+    val removed_duplicates = processCoordinatesAndIDs(main_dataset).dropDuplicates(Array("id")).collect().toList
+    Ep1DataJsonWrapper(removed_duplicates)
   }
 
 }
