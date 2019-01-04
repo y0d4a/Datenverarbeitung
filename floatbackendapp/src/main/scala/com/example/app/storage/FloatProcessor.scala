@@ -1,8 +1,7 @@
 package com.example.app.storage
-import com.example.app.model.frontend_endpoints.{Coordinates, CoordinatesAndID, Ep1DataJsonWrapper}
-import com.example.app.model.{Float, TimedFloat}
+import com.example.app.model.frontend_endpoints._
+import com.example.app.model.{Float, TimedFloat, frontend_endpoints}
 import com.mongodb.spark.MongoSpark
-import org.apache.spark.SparkContext
 import org.apache.spark.sql.{DataFrame, _}
 
 
@@ -49,12 +48,32 @@ class FloatProcessor {
     Ep1DataJsonWrapper(removed_duplicates)
   }
 
+  def processMeasurementsForFloat(float_id: String): Dataset[(Array[Double], Array[Double], Array[Double])] = {
+    main_dataset.filter(float => float.get_Id.equals(float_id))
+      .flatMap(float => float.getContent.map(timedfloat => (timedfloat.getPsal, timedfloat.getPressure, timedfloat.getTemperature)))
+  }
+
+  def retrieveMeasurementsForFloat(float_id: String): Ep2DataJsonWrapper = {
+    val helper = processMeasurementsForFloat(float_id)
+    val salt = helper.flatMap(triple => List(triple._1)).collect()
+    val pressure = helper.flatMap(triple => List(triple._2)).collect()
+    val temperature = helper.flatMap(triple => List(triple._3)).collect()
+    val path = retrieveAllCoordinatesForFloat(float_id).collect()
+    val data = MeasurementsAndPath(salt, pressure, temperature, path)
+    Ep2DataJsonWrapper(data)
+  }
+
+  def retrieveAllCoordinatesForFloat(float_id: String): Dataset[Coordinates] = {
+    main_dataset.filter(float => float.get_Id.equals(float_id))
+      .flatMap(float => float.getContent.map(timedfloat => Coordinates(timedfloat.getLongitude, timedfloat.getLatitude)))
+  }
 }
 
 object Main {
   def main(args: Array[String]): Unit = {
     val a: FloatProcessor = new FloatProcessor
-    val b = a.retrieveCoordinatesAndIDs
+    val b = a.retrieveMeasurementsForFloat("AI 2600-16 FR 117")
+    val c = a.retrieveAllCoordinatesForFloat("AI 2600-16 FR 117").collect().toList
     println(b)
   }
 }
