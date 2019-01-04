@@ -37,11 +37,22 @@ class FloatProcessor {
       CoordinatesAndID(float.get_Id, Coordinates(timedfloat.getLongitude, timedfloat.getLatitude))))
   }
 
+  /**
+    * Processes the measurements to a tuple of arrays, where each tuple holds the saltiness, pressure and temperature arrays
+    * of a float
+    * @param float_id the float id whose measurements are to be processed
+    * @return a dataset containing the forementioned tuple
+    */
   private def processMeasurementsForFloat(float_id: String): Dataset[(Array[Double], Array[Double], Array[Double])] = {
     main_dataset.filter(float => float.get_Id.equals(float_id))
       .flatMap(float => float.getContent.map(timedfloat => (timedfloat.getPsal, timedfloat.getPressure, timedfloat.getTemperature)))
   }
 
+  /**
+    * Returns all coordinates for a float so a path can be built from the front end
+    * @param float_id the float whose coordinates are to be retrieved
+    * @return a dataset storing the coordinates
+    */
   private def retrieveAllCoordinatesForFloat(float_id: String): Dataset[Coordinates] = {
     main_dataset.filter(float => float.get_Id.equals(float_id))
       .flatMap(float => float.getContent.map(timedfloat => Coordinates(timedfloat.getLongitude, timedfloat.getLatitude)))
@@ -58,6 +69,11 @@ class FloatProcessor {
     Ep1DataJsonWrapper(removed_duplicates)
   }
 
+  /**
+    * Returns the desired object from the front end
+    * @param float_id the float id whose path, temperature, salt and pressure values are to be returned
+    * @return the objectwrapper holding the forementioned information
+    */
   def retrieveMeasurementsForFloat(float_id: String): Ep2DataJsonWrapper = {
     val helper = processMeasurementsForFloat(float_id)
     val salt = helper.flatMap(triple => List(triple._1)).collect()
