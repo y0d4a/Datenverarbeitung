@@ -66,7 +66,7 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
   }
 
   get("/testcoordinates") {
-    processor.convertCoordinatesToCaseClass(processor.retrieveTimedFloats(processor.df))
+    processor.retrieveCoorsAndId(processor.df)
   }
 
 }

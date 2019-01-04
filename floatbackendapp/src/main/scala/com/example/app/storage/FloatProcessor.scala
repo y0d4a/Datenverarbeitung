@@ -53,13 +53,14 @@ class FloatProcessor {
         :: acc.getOrElse(row.getAs[String]("floatSerialNo"), List())))
   }
 
-  def retrieveCoorsAndId(dataframe: DataFrame): DataFrame = {
+  case class FloatHelper(id_coordinates_accumulator: (String, Coordinates))
+
+  def retrieveCoorsAndId(dataframe: DataFrame): List[FloatHelper] = {
     val unprocessed_data = dataframe.take(dataframe.count().asInstanceOf[Int]).map(row => row.getAs[Seq[Row]]("content"))
 
     val processed_data = unprocessed_data.flatMap(seq => seq.flatMap(row => List(row)))
 
-    processed_data.map(x => (x.getAs[String]("floatSerialNo"),Coordinates(x.getAs[Double]("longitude"),x.getAs[Double]("latitude"))))
-
+    processed_data.map(x => FloatHelper(x.getAs[String]("floatSerialNo"),Coordinates(x.getAs[Double]("longitude"),x.getAs[Double]("latitude")))).toList
   }
 
     def convertCoordinatesToCaseClass(source: Map[String, List[TimedFloat]]): List[Coordinates] = {
