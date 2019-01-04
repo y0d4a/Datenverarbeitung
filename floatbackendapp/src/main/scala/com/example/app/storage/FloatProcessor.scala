@@ -16,17 +16,32 @@ class FloatProcessor {
     .config("spark.mongodb.output.uri", "mongodb://abteilung6.com/ECCO.ECCO_grouped")
     .getOrCreate()
 
+  /**
+    * Required to transform the dataset into a case class
+    */
   import spark.implicits._
 
-  val sc: SparkContext = spark.sparkContext
-
+  /**
+    * The main dataset object that contains our case class Float, which represents
+    * the entries inside our database
+    */
   val main_dataset: Dataset[Float] = MongoSpark.load(spark).as[Float]
 
+  /**
+    * Processes the coordinates to be contained inside an object, which then gets contained inside another object
+    * that stores the id of the float as well
+    * @param source the dataset to read the data from
+    * @return a dataset containing a CoordinatesAndID object
+    */
   def processCoordinatesAndIDs(source: Dataset[Float]): Dataset[CoordinatesAndID] = {
     source.flatMap(float => float.getContent.map(timedfloat =>
       CoordinatesAndID(float.get_Id, Coordinates(timedfloat.getLongitude, timedfloat.getLatitude))))
   }
 
+  /**
+    * Wraps up the processed dataset to an additional object
+    * @return the object containing all the desired information about the coordinates
+    */
   def retrieveCoordinatesAndIDs: Ep1DataJsonWrapper =
     Ep1DataJsonWrapper(processCoordinatesAndIDs(main_dataset).collect().toList)
 
