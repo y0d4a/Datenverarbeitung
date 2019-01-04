@@ -1,13 +1,8 @@
 package com.example.app.model
 
-import com.mongodb.spark.sql.fieldTypes.ObjectId
-
 case class TimedFloat(longitude: Double, latitude: Double, platformNumber: String,
                       projectName: String, juld: Double, platformType: String, configMissionNumber: Int,
                       cycleNumber: Int, pres: Array[Double], temp: Array[Double], psal: Array[Double])  {
-
- // def getObjectId: ObjectId = _id
-  //def getFloatSerialNo: String = floatSerialNo
   def getLongitude: Double = longitude
   def getLatitude: Double = latitude
   def getPlatformNumber: String = platformNumber

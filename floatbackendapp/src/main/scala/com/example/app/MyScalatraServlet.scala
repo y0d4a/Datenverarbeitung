@@ -45,28 +45,7 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
     contentType = formats("json")
   }
 
-  get("/coordinates") {
-    processor.extractCoordinates(processor.retrieveTimedFloats(processor.df))
-  }
-
-  get("/dates") {
-    processor.parseJuldToCald(processor.retrieveTimedFloats(processor.df))
-  }
-
-  get("/temperature") {
-    processor.getMeasurement(processor.retrieveTimedFloats(processor.df), "temp")
-  }
-
-  get("/salt") {
-    processor.getMeasurement(processor.retrieveTimedFloats(processor.df), "salt")
-  }
-
-  get("/pressure") {
-    processor.getMeasurement(processor.retrieveTimedFloats(processor.df), "pres")
-  }
-
-  get("/testcoordinates") {
-    processor.retrieveCoorsAndId(processor.df)
+  get("/last_coordinates") {
   }
 
 }
