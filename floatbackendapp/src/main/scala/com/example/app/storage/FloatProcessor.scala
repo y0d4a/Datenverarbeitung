@@ -4,13 +4,13 @@ import java.time.{LocalDate, ZonedDateTime}
 import java.time.format.DateTimeFormatter
 import java.time.temporal.JulianFields
 
-import com.example.app.model.TimedFloat
+import com.example.app.model.{Coordinates, TimedFloat}
 import com.mongodb.spark.MongoSpark
 import com.mongodb.spark.sql.fieldTypes.ObjectId
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{DataFrame, Encoders, Row, SparkSession}
+import org.apache.spark.sql.{DataFrame, _}
 
 import scala.collection.{immutable, mutable}
 
@@ -31,6 +31,7 @@ class FloatProcessor {
     */
   val df: DataFrame = MongoSpark.load(spark)
 
+  import spark.implicits._
 
   /**
     * Returns a map containing the floatSerialNumber as a key and all the TimedFloat objects mapped to it
@@ -50,6 +51,19 @@ class FloatProcessor {
       row.getAs[mutable.WrappedArray[Double]]("temp").toArray,
       row.getAs[mutable.WrappedArray[Double]]("psal").toArray)
         :: acc.getOrElse(row.getAs[String]("floatSerialNo"), List())))
+  }
+
+  def retrieveCoorsAndId(dataframe: DataFrame): DataFrame = {
+    val unprocessed_data = dataframe.take(dataframe.count().asInstanceOf[Int]).map(row => row.getAs[Seq[Row]]("content"))
+
+    val processed_data = unprocessed_data.flatMap(seq => seq.flatMap(row => List(row)))
+
+    processed_data.map(x => (x.getAs[String]("floatSerialNo"),Coordinates(x.getAs[Double]("longitude"),x.getAs[Double]("latitude"))))
+
+  }
+
+    def convertCoordinatesToCaseClass(source: Map[String, List[TimedFloat]]): List[Coordinates] = {
+    source.flatMap(x => x._2.map(timedfloat => Coordinates(timedfloat.getLongitude, timedfloat.getLatitude))).toList
   }
 
   /**
