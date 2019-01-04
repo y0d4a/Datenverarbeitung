@@ -49,4 +49,8 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
     processor.retrieveCoordinatesAndIDs
   }
 
+  get("/measurements/:float_id") {
+    processor.retrieveMeasurementsForFloat(params("float_id"))
+  }
+
 }
