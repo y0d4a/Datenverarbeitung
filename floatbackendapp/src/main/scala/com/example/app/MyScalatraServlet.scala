@@ -34,11 +34,6 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
   protected implicit lazy val jsonFormats: Formats = DefaultFormats.withBigDecimal
 
   /**
-    * Object Mapper to properly parse certain objects that aren't formatted properly to JSON
-    */
-  implicit val objectMapper: ObjectMapper = new ObjectMapper() with ScalaObjectMapper
-
-  /**
     * The content type of the HTTP response is always adjusted to JSON
     */
   before() {
