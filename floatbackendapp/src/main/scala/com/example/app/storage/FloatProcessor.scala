@@ -40,18 +40,21 @@ class FloatProcessor {
 
   /**
     * Wraps up the processed dataset to an additional object
-    * @return the object containing all the desired information about the coordinates
+    * It also drops all duplicates and returns the first longitude-latitude pair of the float
+    * @return the object containing all the desired information about the coordinates for the first endpoint
+    *         of the frontend
     */
-  def retrieveCoordinatesAndIDs: Ep1DataJsonWrapper =
+  def retrieveCoordinatesAndIDs: Ep1DataJsonWrapper = {
+    val a = processCoordinatesAndIDs(main_dataset).dropDuplicates(Array("id")).collect().toList
     Ep1DataJsonWrapper(processCoordinatesAndIDs(main_dataset).collect().toList)
-
+  }
 
 }
 
 object Main {
   def main(args: Array[String]): Unit = {
     val a: FloatProcessor = new FloatProcessor
-    val b = a.main_dataset.collect()
-    print(b.head)
+    val b = a.retrieveCoordinatesAndIDs
+    println(b)
   }
 }
