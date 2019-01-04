@@ -1,26 +1,11 @@
 package com.example.app
-
-import java.time.{LocalDateTime, ZoneId}
-import java.time.format.DateTimeFormatter
-import java.util.Locale
-
 import com.example.app.storage.FloatProcessor
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
-import com.mongodb.spark.MongoSpark
-import org.apache.spark.sql.catalyst.encoders.RowEncoder
-import org.apache.spark.sql.{DataFrame, Encoders, Row}
-import org.apache.spark.{SparkConf, SparkContext}
 import org.scalatra._
 
-import scala.reflect.internal.util.TableDef.Column
 // JSON-related libraries
 import org.json4s.{DefaultFormats, Formats}
 // JSON handling support from Scalatra
-import org.scalatra.json._
 import org.scalatra.json.JacksonJsonSupport
-import org.apache.spark.sql.SparkSession
-import collection.JavaConverters._
 
 class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
 
