@@ -1,5 +1,5 @@
 package com.example.app.model.frontend_endpoints
 
-class Ep2DataJsonWrapper {
-
+case class Ep2DataJsonWrapper(data: MeasurementsAndPath) {
+  def getData: MeasurementsAndPath = data
 }
