@@ -46,6 +46,7 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
   }
 
   get("/last_coordinates") {
+    processor.retrieveCoordinatesAndIDs(processor.main_dataset)
   }
 
 }

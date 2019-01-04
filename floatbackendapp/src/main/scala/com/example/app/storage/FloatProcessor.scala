@@ -21,7 +21,12 @@ class FloatProcessor {
   val sc: SparkContext = spark.sparkContext
 
   val main_dataset: Dataset[Float] = MongoSpark.load(spark).as[Float]
-  
+
+  def retrieveCoordinatesAndIDs(source: Dataset[Float]): List[CoordinatesAndID] = {
+    source.flatMap(float => float.getContent.map(timedfloat =>
+      CoordinatesAndID(float.get_Id, Coordinates(timedfloat.getLongitude, timedfloat.getLatitude)))).collect().toList
+  }
+
 }
 
 object Main {
