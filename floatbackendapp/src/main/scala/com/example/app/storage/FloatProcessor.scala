@@ -1,5 +1,5 @@
 package com.example.app.storage
-import com.example.app.model.frontend_endpoints.{Coordinates, CoordinatesAndID}
+import com.example.app.model.frontend_endpoints.{Coordinates, CoordinatesAndID, Ep1DataJsonWrapper}
 import com.example.app.model.{Float, TimedFloat}
 import com.mongodb.spark.MongoSpark
 import org.apache.spark.SparkContext
@@ -22,10 +22,14 @@ class FloatProcessor {
 
   val main_dataset: Dataset[Float] = MongoSpark.load(spark).as[Float]
 
-  def retrieveCoordinatesAndIDs(source: Dataset[Float]): List[CoordinatesAndID] = {
+  def processCoordinatesAndIDs(source: Dataset[Float]): Dataset[CoordinatesAndID] = {
     source.flatMap(float => float.getContent.map(timedfloat =>
-      CoordinatesAndID(float.get_Id, Coordinates(timedfloat.getLongitude, timedfloat.getLatitude)))).collect().toList
+      CoordinatesAndID(float.get_Id, Coordinates(timedfloat.getLongitude, timedfloat.getLatitude))))
   }
+
+  def retrieveCoordinatesAndIDs: Ep1DataJsonWrapper =
+    Ep1DataJsonWrapper(processCoordinatesAndIDs(main_dataset).collect().toList)
+
 
 }
 
