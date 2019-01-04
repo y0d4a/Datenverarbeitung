@@ -32,9 +32,19 @@ class FloatProcessor {
     * @param source the dataset to read the data from
     * @return a dataset containing a CoordinatesAndID object
     */
-  def processCoordinatesAndIDs(source: Dataset[Float]): Dataset[CoordinatesAndID] = {
+  private def processCoordinatesAndIDs(source: Dataset[Float]): Dataset[CoordinatesAndID] = {
     source.flatMap(float => float.getContent.map(timedfloat =>
       CoordinatesAndID(float.get_Id, Coordinates(timedfloat.getLongitude, timedfloat.getLatitude))))
+  }
+
+  private def processMeasurementsForFloat(float_id: String): Dataset[(Array[Double], Array[Double], Array[Double])] = {
+    main_dataset.filter(float => float.get_Id.equals(float_id))
+      .flatMap(float => float.getContent.map(timedfloat => (timedfloat.getPsal, timedfloat.getPressure, timedfloat.getTemperature)))
+  }
+
+  private def retrieveAllCoordinatesForFloat(float_id: String): Dataset[Coordinates] = {
+    main_dataset.filter(float => float.get_Id.equals(float_id))
+      .flatMap(float => float.getContent.map(timedfloat => Coordinates(timedfloat.getLongitude, timedfloat.getLatitude)))
   }
 
   /**
@@ -48,11 +58,6 @@ class FloatProcessor {
     Ep1DataJsonWrapper(removed_duplicates)
   }
 
-  def processMeasurementsForFloat(float_id: String): Dataset[(Array[Double], Array[Double], Array[Double])] = {
-    main_dataset.filter(float => float.get_Id.equals(float_id))
-      .flatMap(float => float.getContent.map(timedfloat => (timedfloat.getPsal, timedfloat.getPressure, timedfloat.getTemperature)))
-  }
-
   def retrieveMeasurementsForFloat(float_id: String): Ep2DataJsonWrapper = {
     val helper = processMeasurementsForFloat(float_id)
     val salt = helper.flatMap(triple => List(triple._1)).collect()
@@ -62,18 +67,5 @@ class FloatProcessor {
     val data = MeasurementsAndPath(salt, pressure, temperature, path)
     Ep2DataJsonWrapper(data)
   }
-
-  def retrieveAllCoordinatesForFloat(float_id: String): Dataset[Coordinates] = {
-    main_dataset.filter(float => float.get_Id.equals(float_id))
-      .flatMap(float => float.getContent.map(timedfloat => Coordinates(timedfloat.getLongitude, timedfloat.getLatitude)))
-  }
 }
 
-object Main {
-  def main(args: Array[String]): Unit = {
-    val a: FloatProcessor = new FloatProcessor
-    val b = a.retrieveMeasurementsForFloat("AI 2600-16 FR 117")
-    val c = a.retrieveAllCoordinatesForFloat("AI 2600-16 FR 117").collect().toList
-    println(b)
-  }
-}
