@@ -76,9 +76,9 @@ class FloatProcessor {
     */
   def retrieveMeasurementsForFloat(float_id: String): Ep2DataJsonWrapper = {
     val helper = processMeasurementsForFloat(float_id)
-    val salt = helper.flatMap(triple => List(triple._1)).collect()
-    val pressure = helper.flatMap(triple => List(triple._2)).collect()
-    val temperature = helper.flatMap(triple => List(triple._3)).collect()
+    val salt = helper.flatMap(triple => List(triple._1)).collect().flatten
+    val pressure = helper.flatMap(triple => List(triple._2)).collect().flatten
+    val temperature = helper.flatMap(triple => List(triple._3)).collect().flatten
     val path = retrieveAllCoordinatesForFloat(float_id).collect()
     val data = MeasurementsAndPath(salt, pressure, temperature, path)
     Ep2DataJsonWrapper(data)
