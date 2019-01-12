@@ -26,11 +26,11 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
   }
 
   get("/last_coordinates") {
-    processor.retrieveCoordinatesAndIDs
+    processor.retrieveCoordinatesAndIDs(processor.floats)
   }
 
   get("/measurements/:float_id") {
-    processor.retrieveMeasurementsForFloat(params("float_id"))
+    processor.retrieveMeasurementsAndPath(params("float_id"), processor.floats)
   }
 
 }

@@ -2,86 +2,58 @@ package com.example.app.storage
 import com.example.app.model.frontend_endpoints._
 import com.example.app.model.{Float, TimedFloat, frontend_endpoints}
 import com.mongodb.spark.MongoSpark
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, _}
 
 
 class FloatProcessor {
-  /**
-    * The spark session with the needed configuration to write and read from the mongodb databank
-    */
-  val spark: SparkSession = SparkSession.builder().master("local[*]")
-    .appName("MongoSparkConnectorIntro")
-    .config("spark.mongodb.input.uri", "mongodb://abteilung6.com/ECCO.ECCO_grouped")
-    .config("spark.mongodb.output.uri", "mongodb://abteilung6.com/ECCO.ECCO_grouped")
-    .getOrCreate()
 
   /**
-    * Required to transform the dataset into a case class
+    * This object connects to the database and initializes itsself with the configurations specified
+    * spark.mongodb.input.uri means that we are can write to the database
+    * spark.mongodb.output.uri means that we can read from the database
     */
-  import spark.implicits._
+  val sparkSession: SparkSession = SparkSession.builder().master("local[*]")
+    .appName("FloatREST_Interface").
+    config("spark.mongodb.input.uri", "mongodb://abteilung6.com/ECCO.buoy")
+    .config("spark.mongodb.output.uri", "mongodb://abteilung6.com/ECCO.buoy").getOrCreate()
 
   /**
-    * The main dataset object that contains our case class Float, which represents
-    * the entries inside our database
+    * This import statement is needed to convert the data coming from mongodb to our case class, which will ensure a more
+    * readable and robust code structure
     */
-  val main_dataset: Dataset[Float] = MongoSpark.load(spark).as[Float]
+  import sparkSession.implicits._
 
   /**
-    * Processes the coordinates to be contained inside an object, which then gets contained inside another object
-    * that stores the id of the float as well
-    * @param source the dataset to read the data from
-    * @return a dataset containing a CoordinatesAndID object
+    * The dataset containing the floatserialnumber as a key and all floats mapped to that key as value
     */
-  private def processCoordinatesAndIDs(source: Dataset[Float]): Dataset[CoordinatesAndID] = {
-    source.flatMap(float => float.getContent.map(timedfloat =>
-      CoordinatesAndID(float.get_Id, Coordinates(timedfloat.getLongitude, timedfloat.getLatitude))))
+  val floats: RDD[(String, Iterable[Float])] = MongoSpark.load(sparkSession).as[Float]
+    .map(float => float.floatSerialNo -> float).rdd.groupByKey()
+
+  /**
+    * This method retrieves the id and coordinates of the last float mapped to a given floatserialnumber
+    * @param source the source rdd from which the data is going to be processed
+    * @return an rdd with the coordinates and the id of the float mapped to those coordinates
+    */
+  private def processCoordinatesAndIDsEP1(source: RDD[(String, Iterable[Float])]): RDD[CoordinatesAndID] = {
+    source.map(tuple => CoordinatesAndID(tuple._1, Coordinates(tuple._2.last.longitude, tuple._2.last.latitude)))
   }
 
-  /**
-    * Processes the measurements to a tuple of arrays, where each tuple holds the saltiness, pressure and temperature arrays
-    * of a float
-    * @param float_id the float id whose measurements are to be processed
-    * @return a dataset containing the forementioned tuple
-    */
-  private def processMeasurementsForFloat(float_id: String): Dataset[(Array[Double], Array[Double], Array[Double])] = {
-    main_dataset.filter(float => float.get_Id.equals(float_id))
-      .flatMap(float => float.getContent.map(timedfloat => (timedfloat.getPsal, timedfloat.getPressure, timedfloat.getTemperature)))
+  def retrieveCoordinatesAndIDs(source: RDD[(String, Iterable[Float])]): Ep1DataJsonWrapper =
+    Ep1DataJsonWrapper(processCoordinatesAndIDsEP1(source).collect())
+
+  private def processCoordinatesAndIDsEP2(float_id: String, source: RDD[(String, Iterable[Float])]): RDD[Coordinates] = {
+    source.filter(tuple => tuple._1.equals(float_id)).values.
+      flatMap(floatiterable => floatiterable.
+        map(float => Coordinates(float.longitude, float.latitude)))
   }
 
-  /**
-    * Returns all coordinates for a float so a path can be built from the front end
-    * @param float_id the float whose coordinates are to be retrieved
-    * @return a dataset storing the coordinates
-    */
-  private def retrieveAllCoordinatesForFloat(float_id: String): Dataset[Coordinates] = {
-    main_dataset.filter(float => float.get_Id.equals(float_id))
-      .flatMap(float => float.getContent.map(timedfloat => Coordinates(timedfloat.getLongitude, timedfloat.getLatitude)))
-  }
-
-  /**
-    * Wraps up the processed dataset to an additional object
-    * It also drops all duplicates and returns the first longitude-latitude pair of the float
-    * @return the object containing all the desired information about the coordinates for the first endpoint
-    *         of the frontend
-    */
-  def retrieveCoordinatesAndIDs: Ep1DataJsonWrapper = {
-    val removed_duplicates = processCoordinatesAndIDs(main_dataset).dropDuplicates(Array("id")).collect().toList
-    Ep1DataJsonWrapper(removed_duplicates)
-  }
-
-  /**
-    * Returns the desired object from the front end
-    * @param float_id the float id whose path, temperature, salt and pressure values are to be returned
-    * @return the objectwrapper holding the forementioned information
-    */
-  def retrieveMeasurementsForFloat(float_id: String): Ep2DataJsonWrapper = {
-    val helper = processMeasurementsForFloat(float_id)
-    val salt = helper.flatMap(triple => List(triple._1)).collect().flatten
-    val pressure = helper.flatMap(triple => List(triple._2)).collect().flatten
-    val temperature = helper.flatMap(triple => List(triple._3)).collect().flatten
-    val path = retrieveAllCoordinatesForFloat(float_id).collect()
-    val data = MeasurementsAndPath(salt, pressure, temperature, path)
-    Ep2DataJsonWrapper(data)
+  def retrieveMeasurementsAndPath(float_id: String, source: RDD[(String, Iterable[Float])]): Ep2DataJsonWrapper = {
+    val coordinates = processCoordinatesAndIDsEP2(float_id, source).collect()
+    val measurements = source.filter(tuple => tuple._1.equals(float_id))
+      .values.flatMap(floatiterable => floatiterable.map(float => (float.PSAL, float.PRES, float.TEMP))).collect().head
+    Ep2DataJsonWrapper(MeasurementsAndPath(measurements._1, measurements._2, measurements._3, coordinates))
   }
 }
+
 
