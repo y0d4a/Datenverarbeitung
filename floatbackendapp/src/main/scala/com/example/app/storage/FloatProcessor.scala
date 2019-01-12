@@ -1,6 +1,6 @@
 package com.example.app.storage
 import com.example.app.model.frontend_endpoints._
-import com.example.app.model.{Float, TimedFloat, frontend_endpoints}
+import com.example.app.model.{Float, frontend_endpoints}
 import com.mongodb.spark.MongoSpark
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, _}
