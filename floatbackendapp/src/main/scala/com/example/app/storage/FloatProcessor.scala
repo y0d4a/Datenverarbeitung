@@ -8,6 +8,8 @@ import org.apache.spark.sql.{DataFrame, _}
 
 class FloatProcessor {
 
+  //System.setProperty("hadoop.home.dir", "C:\\\\hadoop")
+
   /**
     * This object connects to the database and initializes itsself with the configurations specified
     * spark.mongodb.input.uri means that we are can write to the database
@@ -16,7 +18,9 @@ class FloatProcessor {
   val sparkSession: SparkSession = SparkSession.builder().master("local[*]")
     .appName("FloatREST_Interface").
     config("spark.mongodb.input.uri", "mongodb://abteilung6.com/ECCO.buoy")
-    .config("spark.mongodb.output.uri", "mongodb://abteilung6.com/ECCO.buoy").getOrCreate()
+    .config("spark.mongodb.output.uri", "mongodb://abteilung6.com/ECCO.buoy")
+    .config("spark.ui.port", "4444")
+    .getOrCreate()
 
   /**
     * This import statement is needed to convert the data coming from mongodb to our case class, which will ensure a more
