@@ -16,9 +16,9 @@ class FloatProcessor {
     * spark.mongodb.output.uri means that we can read from the database
     */
   val sparkSession: SparkSession = SparkSession.builder().master("local[*]")
-    .appName("FloatREST_Interface").
-    config("spark.mongodb.input.uri", "mongodb://abteilung6.com/ECCO.buoy")
-    .config("spark.mongodb.output.uri", "mongodb://abteilung6.com/ECCO.buoy")
+    .appName("FloatREST_Interface")
+    .config("spark.mongodb.input.uri", "mongodb://ecco:kd23.S.W@hadoop05.f4.htw-berlin.de:27020/ecco.buoy")
+    .config("spark.mongodb.output.uri", "mongodb://ecco:kd23.S.W@hadoop05.f4.htw-berlin.de:27020/ecco.buoy")
     .config("spark.ui.port", "4444")
     .getOrCreate()
 
