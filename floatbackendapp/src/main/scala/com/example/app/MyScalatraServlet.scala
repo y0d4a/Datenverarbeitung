@@ -25,6 +25,10 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
     contentType = formats("json")
   }
 
+  options("/*"){
+    response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"))
+  }
+
   get("/last_coordinates") {
     processor.retrieveCoordinatesAndIDs(processor.floats)
   }
