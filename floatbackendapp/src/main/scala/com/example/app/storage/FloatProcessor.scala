@@ -43,15 +43,37 @@ class FloatProcessor {
     source.map(tuple => CoordinatesAndID(tuple._1, Coordinates(tuple._2.last.longitude, tuple._2.last.latitude)))
   }
 
+  /**
+    * This method wraps the coordinates and ids for endpoint 1 inside an object, which contains the array "data".
+    * So processCoordinatesAndIDsEP1 returns the data array, and this method returns an object containing the data array
+    * @param source the source RDD
+    * @return the object containing the data array
+    */
   def retrieveCoordinatesAndIDs(source: RDD[(String, Iterable[Float])]): Ep1DataJsonWrapper =
     Ep1DataJsonWrapper(processCoordinatesAndIDsEP1(source).collect())
 
+  /**
+    * Returns all  the coordinates that have ever been transmitted by the float with the specified float_id
+    * @param float_id the float id
+    * @param source the source RDD
+    * @return returns
+    */
   private def processCoordinatesAndIDsEP2(float_id: String, source: RDD[(String, Iterable[Float])]): RDD[Coordinates] = {
     source.filter(tuple => tuple._1.equals(float_id)).values.
       flatMap(floatiterable => floatiterable.
         map(float => Coordinates(float.longitude, float.latitude)))
   }
 
+  /**
+    * Here we save the coordinates for the specified float id AND we store the measurements of the float with the specified
+    * float id, by filtering the floats in the databank and finding the ones that match the given id. Then we take all the
+    * measurement arrays mapped to that float and we save them together with the coordinates inside the object.
+    * Then we wrap the object inside the Ep2DataJsonWrapper, which is another object, because thats how the frontend
+    * wanted to receive the data
+    * @param float_id the float_id
+    * @param source the source RDD
+    * @return all coordinates mapped to the specified float id and all the measurements too
+    */
   def retrieveMeasurementsAndPath(float_id: String, source: RDD[(String, Iterable[Float])]): Ep2DataJsonWrapper = {
     val coordinates = processCoordinatesAndIDsEP2(float_id, source).collect()
     val measurements = source.filter(tuple => tuple._1.equals(float_id))
