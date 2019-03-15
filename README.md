@@ -1,7 +1,5 @@
 # ECCO-Project: Datenverarbeitung
 
----
-
 ## Verwendete Frameworks
 
 - Scalatra
@@ -9,7 +7,6 @@
 - MongoDB
   - MongoSpark Connector
 
----
 
 ## How to set up
 
@@ -18,7 +15,6 @@
 3. `sbt run` ausführen
 4. In der sbt-Konsole `jetty:start`
 
----
 
 ## Wichtig
 
