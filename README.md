@@ -3,7 +3,7 @@
 ## Verwendete Frameworks
 
 - Scalatra
-- Spark
+- Apache Spark
 - MongoDB
   - MongoSpark Connector
 
