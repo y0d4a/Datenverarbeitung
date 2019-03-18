@@ -8,12 +8,16 @@
   - MongoSpark Connector
 
 
-## How to set up
-
-1. Das Repository clonen
-2. In den Projektordner wechseln
-3. `sbt run` ausführen
-4. In der sbt-Konsole `jetty:start`
+## Deployment
+```
+$ git clone https://github.com/htw-wise-2018/Datenverarbeitung.git
+$ cd Datenverarbeitung
+$ screen -S ecco_process
+$ sbt clean
+$ sbt package
+$ sbt
+$ jetty:start
+```
 
 
 ## Wichtig
