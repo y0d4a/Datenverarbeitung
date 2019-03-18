@@ -12,17 +12,25 @@
 ```
 $ git clone https://github.com/htw-wise-2018/Datenverarbeitung.git
 $ cd Datenverarbeitung
-$ screen -S ecco_process
+$ screen -S ecco_datenverarbeitung
 $ sbt clean
 $ sbt package
 $ sbt
 $ jetty:start
 ```
 
+Nach dem Start sollte keine Tastatureingabe erfolgen, sonst schließt sich das Programm.  
+Konsole schließen empfohlen.
+
 Nach dem Screen Befehl kann die Console geschlossen werden und der Prozess läuft weiter.
-Zur Auflisten der Hintergrundprozesse:
+Zum Auflisten der Hintergrundprozesse:
 ```
 $ screen -ls
+```
+
+Um wieder zum Prozess zu gelangen:
+```
+screen -r XXXX.ecco_datenverarbeitung
 ```
 
 Um alle Screen Prozesse zu schließen:
