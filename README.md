@@ -19,6 +19,16 @@ $ sbt
 $ jetty:start
 ```
 
+Nach dem Screen Befehl kann die Console geschlossen werden und der Prozess läuft weiter.
+Zur Auflisten der Hintergrundprozesse:
+```
+$ screen -ls
+```
+
+Um alle Screen Prozesse zu schließen:
+```
+$ pkill screen
+```
 
 ## Wichtig
 
