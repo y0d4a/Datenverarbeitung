@@ -11,7 +11,7 @@
 ## Deployment
 ```
 $ git clone https://github.com/htw-wise-2018/Datenverarbeitung.git
-$ cd Datenverarbeitung
+$ cd Datenverarbeitung/floatbackendapp
 $ screen -S ecco_datenverarbeitung
 $ sbt clean
 $ sbt package
@@ -21,6 +21,13 @@ $ jetty:start
 
 Nach dem Start sollte keine Tastatureingabe erfolgen, sonst schließt sich das Programm.  
 Konsole schließen empfohlen.
+
+## Neuladen der Anwendung
+```
+$ sbt
+> ~;jetty:stop;jetty:start
+```
+
 
 Nach dem Screen Befehl kann die Console geschlossen werden und der Prozess läuft weiter.
 Zum Auflisten der Hintergrundprozesse:
