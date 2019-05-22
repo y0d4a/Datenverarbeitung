@@ -1,6 +1,6 @@
 package com.example.app.storage
 import com.example.app.model.frontend_endpoints._
-import com.example.app.model.{Float, frontend_endpoints}
+import com.example.app.model.{Buoy, frontend_endpoints}
 import com.mongodb.spark.MongoSpark
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, _}
@@ -31,15 +31,15 @@ class FloatProcessor {
   /**
     * The dataset containing the floatserialnumber as a key and all floats mapped to that key as value
     */
-  val floats: RDD[(String, Iterable[Float])] = MongoSpark.load(sparkSession).as[Float]
-    .map(float => float.floatSerialNo -> float).rdd.groupByKey()
+  val floats: RDD[(String, Iterable[Buoy])] = MongoSpark.load(sparkSession).as[Buoy]
+    .map(float => float.buoySerialNo -> float).rdd.groupByKey()
 
   /**
     * This method retrieves the id and coordinates of the last float mapped to a given floatserialnumber
     * @param source the source rdd from which the data is going to be processed
     * @return an rdd with the coordinates and the id of the float mapped to those coordinates
     */
-  private def processCoordinatesAndIDsEP1(source: RDD[(String, Iterable[Float])]): RDD[CoordinatesAndID] = {
+  private def processCoordinatesAndIDsEP1(source: RDD[(String, Iterable[Buoy])]): RDD[CoordinatesAndID] = {
     source.map(tuple => CoordinatesAndID(tuple._1, Coordinates(tuple._2.last.longitude, tuple._2.last.latitude)))
   }
 
@@ -49,7 +49,7 @@ class FloatProcessor {
     * @param source the source RDD
     * @return the object containing the data array
     */
-  def retrieveCoordinatesAndIDs(source: RDD[(String, Iterable[Float])]): Ep1DataJsonWrapper =
+  def retrieveCoordinatesAndIDs(source: RDD[(String, Iterable[Buoy])]): Ep1DataJsonWrapper =
     Ep1DataJsonWrapper(processCoordinatesAndIDsEP1(source).collect())
 
   /**
@@ -58,7 +58,7 @@ class FloatProcessor {
     * @param source the source RDD
     * @return returns
     */
-  private def processCoordinatesAndIDsEP2(float_id: String, source: RDD[(String, Iterable[Float])]): RDD[Coordinates] = {
+  private def processCoordinatesAndIDsEP2(float_id: String, source: RDD[(String, Iterable[Buoy])]): RDD[Coordinates] = {
     source.filter(tuple => tuple._1.equals(float_id)).values.
       flatMap(floatiterable => floatiterable.
         map(float => Coordinates(float.longitude, float.latitude)))
@@ -74,7 +74,7 @@ class FloatProcessor {
     * @param source the source RDD
     * @return all coordinates mapped to the specified float id and all the measurements too
     */
-  def retrieveMeasurementsAndPath(float_id: String, source: RDD[(String, Iterable[Float])]): Ep2DataJsonWrapper = {
+  def retrieveMeasurementsAndPath(float_id: String, source: RDD[(String, Iterable[Buoy])]): Ep2DataJsonWrapper = {
     val coordinates = processCoordinatesAndIDsEP2(float_id, source).collect()
     val measurements = source.filter(tuple => tuple._1.equals(float_id))
       .values.flatMap(floatiterable => floatiterable.map(float => (float.PSAL, float.PRES, float.TEMP))).collect().head
