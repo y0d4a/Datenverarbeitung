@@ -6,6 +6,7 @@ import com.mongodb.spark.rdd.MongoRDD
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, _}
 import org.bson.Document
+import org.bson.BsonArray
 
 class BuoyProcessor {
 
@@ -18,8 +19,10 @@ class BuoyProcessor {
     */
   val sparkSession: SparkSession = SparkSession.builder().master("local[*]")
     .appName("BuoyREST_Interface")
-    .config("spark.mongodb.input.uri", "mongodb://ecco:kd23.S.W@hadoop05.f4.htw-berlin.de:27020/ecco.buoy")
-    .config("spark.mongodb.output.uri", "mongodb://ecco:kd23.S.W@hadoop05.f4.htw-berlin.de:27020/ecco.buoy")
+    //.config("spark.mongodb.input.uri", "mongodb://ecco:kd23.S.W@hadoop05.f4.htw-berlin.de:27020/ecco.buoy")
+    //.config("spark.mongodb.output.uri", "mongodb://ecco:kd23.S.W@hadoop05.f4.htw-berlin.de:27020/ecco.buoy")
+    .config("spark.mongodb.input.uri", "mongodb://ecco:kd23.S.W@localhost:27020/ecco.buoy")
+    .config("spark.mongodb.output.uri", "mongodb://ecco:kd23.S.W@localhost:27020/ecco.buoy")
     .config("spark.ui.port", "4444")
     .getOrCreate()
   // TODO: outsource credentials to environment variables
@@ -49,10 +52,19 @@ class BuoyProcessor {
     * @return all coordinates mapped to the specified buoy id and all the measurements too
     */
   def retrieveMeasurementsAndPath(buoyId: String): Ep2DataJsonWrapper = {
-    val rdd = pipeline(Seq(
-      "{$match: { buoySerialNo : '" + buoyId + "' }}",
+    val measurements = pipeline(Seq(
+      "{$match: { floatSerialNo : '" + buoyId + "' }}",
       "{$limit: 1}"
-    ))
+    )).toDS[Buoy].collect()(0)
+
+    val coordinates = pipeline(Seq(
+      "{$match: { floatSerialNo: '" + buoyId + "' }}",
+      //"{$group: {_id: 'coords', coord: {$push: {'longitude': '$longitude', 'latitude': '$latitude'}}}}",
+      //"{$replaceRoot: { newRoot: '$coords' }}"
+      "{$project: {'longitude': 1, 'latitude': 1}}"
+    )).toDS[Coordinates].collect()
+    val result = MeasurementsAndPath(measurements.PSAL, measurements.PRES, measurements.TEMP, coordinates)
+    /*
     val result = rdd.toDS[Buoy].collect().map(m => MeasurementsAndPath(m.PSAL, m.PRES, m.TEMP, Array(Coordinates(m.longitude, m.latitude))))
       .reduce((a, b) => MeasurementsAndPath(
         a.saltinessValues ++ b.saltinessValues,
@@ -60,6 +72,7 @@ class BuoyProcessor {
         a.temperatureValues ++ b.temperatureValues,
         a.path ++ b.path
       ))
+      */
     Ep2DataJsonWrapper(result)
   }
 }

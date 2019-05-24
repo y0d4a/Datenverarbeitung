@@ -5,7 +5,7 @@ package com.example.app.model
   * @param PRES
   * @param TEMP
   * @param PSAL
-  * @param buoySerialNo
+  * @param floatSerialNo
   * @param longitude
   * @param latitude
   * @param platformNumber
@@ -15,6 +15,6 @@ package com.example.app.model
   * @param configMissionNumber
   * @param cycleNumber
   */
-case class Buoy(PRES: Array[Double], TEMP: Array[Double], PSAL: Array[Double], buoySerialNo: String,
+case class Buoy(PRES: Array[Double], TEMP: Array[Double], PSAL: Array[Double], floatSerialNo: String,
                 longitude: Double, latitude: Double, platformNumber: String, projectName: String,
                 juld: Double, platformType: String, configMissionNumber: Int, cycleNumber: Int)

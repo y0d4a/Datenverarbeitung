@@ -17,8 +17,10 @@ class FloatProcessor {
     */
   val sparkSession: SparkSession = SparkSession.builder().master("local[*]")
     .appName("FloatREST_Interface")
-    .config("spark.mongodb.input.uri", "mongodb://ecco:kd23.S.W@hadoop05.f4.htw-berlin.de:27020/ecco.buoy")
-    .config("spark.mongodb.output.uri", "mongodb://ecco:kd23.S.W@hadoop05.f4.htw-berlin.de:27020/ecco.buoy")
+    //.config("spark.mongodb.input.uri", "mongodb://ecco:kd23.S.W@hadoop05.f4.htw-berlin.de:27020/ecco.buoy")
+    //.config("spark.mongodb.output.uri", "mongodb://ecco:kd23.S.W@hadoop05.f4.htw-berlin.de:27020/ecco.buoy")
+    .config("spark.mongodb.input.uri", "mongodb://ecco:kd23.S.W@localhost:27020/ecco.buoy")
+    .config("spark.mongodb.output.uri", "mongodb://ecco:kd23.S.W@localhost:27020/ecco.buoy")
     .config("spark.ui.port", "4444")
     .getOrCreate()
 
@@ -32,7 +34,7 @@ class FloatProcessor {
     * The dataset containing the floatserialnumber as a key and all floats mapped to that key as value
     */
   val floats: RDD[(String, Iterable[Buoy])] = MongoSpark.load(sparkSession).as[Buoy]
-    .map(float => float.buoySerialNo -> float).rdd.groupByKey()
+    .map(float => float.floatSerialNo -> float).rdd.groupByKey()
 
   /**
     * This method retrieves the id and coordinates of the last float mapped to a given floatserialnumber
