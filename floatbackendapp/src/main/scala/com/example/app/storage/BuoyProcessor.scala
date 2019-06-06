@@ -1,6 +1,8 @@
 package com.example.app.storage
+
 import com.example.app.model.frontend_endpoints._
 import com.example.app.model.{Buoy, frontend_endpoints}
+import com.example.app.storage.MongoPipeline._
 import com.mongodb.spark.MongoSpark
 import com.mongodb.spark.rdd.MongoRDD
 import org.apache.spark.rdd.RDD
@@ -31,6 +33,7 @@ class BuoyProcessor {
     * This import statement is needed to convert the data coming from mongodb to our case class, which will ensure a more
     * readable and robust code structure
     */
+
   import sparkSession.implicits._
 
   /**
@@ -43,15 +46,53 @@ class BuoyProcessor {
   }
 
   /**
+    * This method wraps the coordinates and ids for endpoint 1 inside an object, which contains the array "data".
+    * So processCoordinatesAndIDsEP1 returns the data array, and this method returns an object containing the data array
+    *
+    * @return the object containing the data array
+    */
+  def retrieveCoordinatesAndIDs: Ep1DataJsonWrapper = {
+    val result = MongoPipeline()
+      .Group(MDoc(
+        "_id" -> "floatSerialNo",
+        "coordinates" -> MDoc(
+          "$push" -> MDoc("longitude" -> "$longitude", "latitude" -> "$latitude"))
+      )).Project(MDoc("_id" -> 0, "id" -> "$_id", "coordinates" -> 1))
+      .run(source)
+      .toDS[CoordinatesAndID].collect()
+    Ep1DataJsonWrapper(result)
+  }
+
+
+  /**
     * Here we save the coordinates for the specified buoy id AND we store the measurements of the buoy with the specified
     * buoy id, by filtering the buoys in the databank and finding the ones that match the given id. Then we take all the
     * measurement arrays mapped to that buoy and we save them together with the coordinates inside the object.
     * Then we wrap the object inside the Ep2DataJsonWrapper, which is another object, because thats how the frontend
     * wanted to receive the data
+    *
     * @param buoyId the buoy id
     * @return all coordinates mapped to the specified buoy id and all the measurements too
     */
   def retrieveMeasurementsAndPath(buoyId: String): Ep2DataJsonWrapper = {
+
+    // with MongoPipeline wrappper
+
+    val buoysPipeline = MongoPipeline().Match(MDoc("floatSerialNo" -> buoyId.melem))
+
+    val measurements = buoysPipeline
+      .Limit(1)
+      .run(source)
+      .toDS[Buoy].collect()(0)
+
+    val coordinates = buoysPipeline
+      .Project(MDoc("longitude" -> 1, "latitude" -> 1))
+      .run(source)
+      .toDS[Coordinates].collect()
+
+    /*
+    // without MongoPipeline wrappper
+
     val measurements = pipeline(Seq(
       "{$match: { floatSerialNo : '" + buoyId + "' }}",
       "{$limit: 1}"
@@ -59,20 +100,11 @@ class BuoyProcessor {
 
     val coordinates = pipeline(Seq(
       "{$match: { floatSerialNo: '" + buoyId + "' }}",
-      //"{$group: {_id: 'coords', coord: {$push: {'longitude': '$longitude', 'latitude': '$latitude'}}}}",
-      //"{$replaceRoot: { newRoot: '$coords' }}"
       "{$project: {'longitude': 1, 'latitude': 1}}"
     )).toDS[Coordinates].collect()
+     */
+
     val result = MeasurementsAndPath(measurements.PSAL, measurements.PRES, measurements.TEMP, coordinates)
-    /*
-    val result = rdd.toDS[Buoy].collect().map(m => MeasurementsAndPath(m.PSAL, m.PRES, m.TEMP, Array(Coordinates(m.longitude, m.latitude))))
-      .reduce((a, b) => MeasurementsAndPath(
-        a.saltinessValues ++ b.saltinessValues,
-        a.pressureValues ++ b.pressureValues,
-        a.temperatureValues ++ b.temperatureValues,
-        a.path ++ b.path
-      ))
-      */
     Ep2DataJsonWrapper(result)
   }
 }

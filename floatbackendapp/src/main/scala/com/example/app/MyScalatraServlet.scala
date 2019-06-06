@@ -32,8 +32,8 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
 
   get("/last_coordinates") {
     response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"))
-    val processor: FloatProcessor = new FloatProcessor
-    processor.retrieveCoordinatesAndIDs(processor.floats)
+    //val processor: FloatProcessor = new FloatProcessor
+    bprocessor.retrieveCoordinatesAndIDs
   }
 
   get("/measurements/:float_id") {
