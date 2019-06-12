@@ -21,6 +21,10 @@ object MongoPipeline {
     override def toString: String = s"$value"
   }
 
+  case class MArray(elems: MElement*) extends MElement {
+    override def toString: String = elems.mkString("[", ", ", "]")
+  }
+
   case class MDoc(elems: (String, MElement)*) extends MElement {
     override def toString: String = elems.map(e => e._1.toString + ": " + e._2.toString).mkString("{", ", ", "}")
   }

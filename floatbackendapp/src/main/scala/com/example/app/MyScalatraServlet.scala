@@ -43,7 +43,6 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
 
   get("/measurements/:float_id/:cycle_num") {
     response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"))
-    //bprocessor.retrieveMeasurementsAndPath(params("float_id"))
-    params("cycle_num")
+    bprocessor.retrieveMeasurements(params("float_id"), params("cycle_num"))
   }
 }

@@ -64,6 +64,13 @@ class BuoyProcessor {
     Ep1DataJsonWrapper(result)
   }
 
+  def retrieveMeasurements(buoyId: String, cycleNum: String): Ep3DataJsonWrapper = {
+    val result = MongoPipeline()
+      .Match(MDoc("$and" -> MArray(MDoc("floatSerialNo" -> buoyId.melem), MDoc("cycleNumber" -> cycleNum.toInt.melem))))
+      .Project(MDoc("pressureValues" -> "$PRES", "saltinessValues" -> "$PSAL", "temperatureValues" -> "$TEMP"))
+      .run(source).toDS[Measurements].collect()(0)
+    Ep3DataJsonWrapper(result)
+  }
 
   /**
     * Here we save the coordinates for the specified buoy id AND we store the measurements of the buoy with the specified
