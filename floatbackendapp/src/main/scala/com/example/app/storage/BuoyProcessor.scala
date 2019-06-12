@@ -67,7 +67,7 @@ class BuoyProcessor {
 
   /**
     * Here we save the coordinates for the specified buoy id AND we store the measurements of the buoy with the specified
-    * buoy id, by filtering the buoys in the databank and finding the ones that match the given id. Then we take all the
+    * buoy id, by filtering the buoys in the database and finding the ones that match the given id. Then we take all the
     * measurement arrays mapped to that buoy and we save them together with the coordinates inside the object.
     * Then we wrap the object inside the Ep2DataJsonWrapper, which is another object, because thats how the frontend
     * wanted to receive the data
