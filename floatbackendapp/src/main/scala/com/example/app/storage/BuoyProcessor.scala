@@ -54,10 +54,11 @@ class BuoyProcessor {
   def retrieveCoordinatesAndIDs: Ep1DataJsonWrapper = {
     val result = MongoPipeline()
       .Group(MDoc(
-        "_id" -> "floatSerialNo",
+        "_id" -> "$floatSerialNo",
+        "id" -> MDoc("$last" -> "$floatSerialNo".melem),
         "coordinates" -> MDoc(
-          "$push" -> MDoc("longitude" -> "$longitude", "latitude" -> "$latitude"))
-      )).Project(MDoc("_id" -> 0, "id" -> "$_id", "coordinates" -> 1))
+          "$last" -> MDoc("longitude" -> "$longitude", "latitude" -> "$latitude"))
+      ))
       .run(source)
       .toDS[CoordinatesAndID].collect()
     Ep1DataJsonWrapper(result)
