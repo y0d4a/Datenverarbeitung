@@ -79,6 +79,13 @@ case class MongoPipeline(stages: Seq[MongoPipeline.Stage]=Seq.empty) {
   def Project(doc: MDoc): MongoPipeline = addStage(Stage("$project", doc))
 
   /**
+    * Add a sort stage (for more info see https://docs.mongodb.com/manual/reference/operator/aggregation/match/#pipe._S_sort)
+    *
+    * @param doc : {$project: doc}
+    */
+  def Sort(doc: MDoc): MongoPipeline = addStage(Stage("$sort", doc))
+
+  /**
     * Run pipeline on MongoRDD
     *
     * @param source MongoRDD source to run pipeline on

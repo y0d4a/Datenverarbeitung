@@ -80,7 +80,7 @@ class FloatProcessor {
     val coordinates = processCoordinatesAndIDsEP2(float_id, source).collect()
     val measurements = source.filter(tuple => tuple._1.equals(float_id))
       .values.flatMap(floatiterable => floatiterable.map(float => (float.PSAL, float.PRES, float.TEMP))).collect().head
-    Ep2DataJsonWrapper(MeasurementsAndPath(measurements._1, measurements._2, measurements._3, coordinates))
+    Ep2DataJsonWrapper(PathAndLastMeasurements(measurements._1, measurements._2, measurements._3, coordinates))
   }
 }
 

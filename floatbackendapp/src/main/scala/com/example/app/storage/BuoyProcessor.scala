@@ -75,11 +75,13 @@ class BuoyProcessor {
     * @param buoyId the buoy id
     * @return all coordinates mapped to the specified buoy id and all the measurements too
     */
-  def retrieveMeasurementsAndPath(buoyId: String): Ep2DataJsonWrapper = {
+  def retrievePathAndLastMeasurements(buoyId: String): Ep2DataJsonWrapper = {
 
     // with MongoPipeline wrappper
 
-    val buoysPipeline = MongoPipeline().Match(MDoc("floatSerialNo" -> buoyId.melem))
+    val buoysPipeline = MongoPipeline()
+      .Match(MDoc("floatSerialNo" -> buoyId.melem))
+      .Sort(MDoc("juld" -> (-1).melem))
 
     val measurements = buoysPipeline
       .Limit(1)
@@ -105,7 +107,7 @@ class BuoyProcessor {
     )).toDS[Coordinates].collect()
      */
 
-    val result = MeasurementsAndPath(measurements.PSAL, measurements.PRES, measurements.TEMP, coordinates)
+    val result = PathAndLastMeasurements(measurements.PSAL, measurements.PRES, measurements.TEMP, coordinates)
     Ep2DataJsonWrapper(result)
   }
 }

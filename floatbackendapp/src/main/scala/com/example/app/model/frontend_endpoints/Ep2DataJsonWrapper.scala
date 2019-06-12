@@ -23,6 +23,6 @@ package com.example.app.model.frontend_endpoints
   *   }
   *}
    */
-case class Ep2DataJsonWrapper(data: MeasurementsAndPath) {
-  def getData: MeasurementsAndPath = data
+case class Ep2DataJsonWrapper(data: PathAndLastMeasurements) {
+  def getData: PathAndLastMeasurements = data
 }
