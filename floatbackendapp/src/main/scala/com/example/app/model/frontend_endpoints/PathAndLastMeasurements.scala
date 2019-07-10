@@ -23,9 +23,9 @@ package com.example.app.model.frontend_endpoints
   * @param path
   */
 case class PathAndLastMeasurements(saltinessValues: Array[Double], pressureValues: Array[Double],
-                                   temperatureValues: Array[Double], path: Array[Coordinates]) {
+                                   temperatureValues: Array[Double], path: Array[CoordinatesAndCycleNumber]) {
   def getSaltinessValues: Array[Double] = saltinessValues
   def getPressureValues: Array[Double] = pressureValues
   def getTemperatureValues: Array[Double] = temperatureValues
-  def getPath: Array[Coordinates] = path
+  def getPath: Array[CoordinatesAndCycleNumber] = path
 }

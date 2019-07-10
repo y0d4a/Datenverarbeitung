@@ -96,9 +96,9 @@ class BuoyProcessor {
       .toDS[Buoy].collect()(0)
 
     val coordinates = buoysPipeline
-      .Project(MDoc("longitude" -> 1, "latitude" -> 1))
+      .Project(MDoc("longitude" -> 1, "latitude" -> 1, "cycleNumber" -> 1))
       .run(source)
-      .toDS[Coordinates].collect()
+      .toDS[CoordinatesAndCycleNumber].collect()
 
     /*
     // without MongoPipeline wrappper
