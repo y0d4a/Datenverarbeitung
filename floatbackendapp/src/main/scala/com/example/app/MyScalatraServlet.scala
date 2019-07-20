@@ -1,5 +1,5 @@
 package com.example.app
-import com.example.app.storage.{BuoyProcessor, FloatProcessor}
+import com.example.app.storage.BuoyProcessor
 import org.scalatra._
 
 // JSON-related libraries

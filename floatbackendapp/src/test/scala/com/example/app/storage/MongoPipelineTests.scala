@@ -8,14 +8,16 @@ class MongoPipelineTests extends ScalatraFunSuite {
 
   // run "test" in sbt shell to run these tests
   import MongoPipeline._
+  import MongoPipeline.implicits._
+
 
   test("Test if MongoPipeline generates correct aggregation pipeline strings") {
     val stages = MongoPipeline()
-      .Match(MDoc("abc" -> "123".melem))
+      .Match("abc" -> "123")
       .Limit(4)
-      .Group(MDoc("_id" -> "xyz".melem))
-      .Project(MDoc("_id" -> 0.melem, "newField" -> MDoc("elem0" -> 0, "elem1" -> "1", "elem2" -> "2")))
-      .ReplaceRoot(MDoc("newRoot" -> "$newField".melem)).stages
+      .Group("_id" -> "xyz")
+      .Project("_id" -> 0, "newField" -> MDoc("elem0" -> 0, "elem1" -> "1", "elem2" -> "2"))
+      .ReplaceRoot("newRoot" -> "$newField").stages
 
     val correctStrs = Seq(
       "{$match: {abc: '123'}}",

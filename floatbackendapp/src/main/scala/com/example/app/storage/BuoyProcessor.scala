@@ -25,6 +25,8 @@ class BuoyProcessor {
     //.config("spark.mongodb.output.uri", "mongodb://ecco:kd23.S.W@hadoop05.f4.htw-berlin.de:27020/ecco.buoy")
     .config("spark.mongodb.input.uri", "mongodb://ecco:kd23.S.W@localhost:27020/ecco.buoy")
     .config("spark.mongodb.output.uri", "mongodb://ecco:kd23.S.W@localhost:27020/ecco.buoy")
+    //.config("spark.mongodb.input.uri", "mongodb://ecco:kd23.S.W@localhost:27017/ecco.buoy")
+    //.config("spark.mongodb.output.uri", "mongodb://ecco:kd23.S.W@localhost:27017/ecco.buoy")
     .config("spark.ui.port", "4444")
     .getOrCreate()
   // TODO: outsource credentials to environment variables
@@ -35,6 +37,7 @@ class BuoyProcessor {
     */
 
   import sparkSession.implicits._
+  import MongoPipeline.implicits._
 
   /**
     * The dataset containing the buoyserialnumber as a key and all buoys mapped to that key as value
@@ -53,12 +56,12 @@ class BuoyProcessor {
     */
   def retrieveCoordinatesAndIDs: Ep1DataJsonWrapper = {
     val result = MongoPipeline()
-      .Group(MDoc(
+      .Group(
         "_id" -> "$floatSerialNo",
-        "id" -> MDoc("$last" -> "$floatSerialNo".melem),
+        "id" -> MDoc("$last" -> "$floatSerialNo"),
         "coordinates" -> MDoc(
           "$last" -> MDoc("longitude" -> "$longitude", "latitude" -> "$latitude"))
-      ))
+      )
       .run(source)
       .toDS[CoordinatesAndID].collect()
     Ep1DataJsonWrapper(result)
@@ -66,8 +69,8 @@ class BuoyProcessor {
 
   def retrieveMeasurements(buoyId: String, cycleNum: String): Ep3DataJsonWrapper = {
     val result = MongoPipeline()
-      .Match(MDoc("$and" -> MArray(MDoc("floatSerialNo" -> buoyId.melem), MDoc("cycleNumber" -> cycleNum.toInt.melem))))
-      .Project(MDoc("pressureValues" -> "$PRES", "saltinessValues" -> "$PSAL", "temperatureValues" -> "$TEMP"))
+      .Match("$and" -> MArray(MDoc("floatSerialNo" -> buoyId), MDoc("cycleNumber" -> cycleNum.toInt)))
+      .Project("pressureValues" -> "$PRES", "saltinessValues" -> "$PSAL", "temperatureValues" -> "$TEMP")
       .run(source).toDS[Measurements].collect()(0)
     Ep3DataJsonWrapper(result)
   }
@@ -84,24 +87,24 @@ class BuoyProcessor {
     */
   def retrievePathAndLastMeasurements(buoyId: String): Ep2DataJsonWrapper = {
 
-    // with MongoPipeline wrappper
+    // with MongoPipeline wrapper
 
     val buoysPipeline = MongoPipeline()
-      .Match(MDoc("floatSerialNo" -> buoyId.melem))
-      .Sort(MDoc("juld" -> (-1).melem))
+      .Match("floatSerialNo" -> buoyId)
+      .Sort("juld" -> -1)
 
     val measurements = buoysPipeline
       .Limit(1)
       .run(source)
-      .toDS[Buoy].collect()(0)
+      .toDS[Buoy].first()
 
     val coordinates = buoysPipeline
-      .Project(MDoc("longitude" -> 1, "latitude" -> 1, "cycleNumber" -> 1))
+      .Project("longitude" -> 1, "latitude" -> 1, "cycleNumber" -> 1)
       .run(source)
       .toDS[CoordinatesAndCycleNumber].collect()
 
     /*
-    // without MongoPipeline wrappper
+    // without MongoPipeline wrapper
 
     val measurements = pipeline(Seq(
       "{$match: { floatSerialNo : '" + buoyId + "' }}",
