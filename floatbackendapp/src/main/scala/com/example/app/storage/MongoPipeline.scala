@@ -1,6 +1,5 @@
 package com.example.app.storage
 
-import com.example.app.model.frontend_endpoints.CoordinatesAndID
 import com.mongodb.spark.rdd.MongoRDD
 import org.bson.Document
 
@@ -21,9 +20,14 @@ object MongoPipeline {
     override def toString: String = elems.mkString("[", ", ", "]")
   }
 
-  case class MDoc(elems: (String, MElement)*) extends MElement {
+  class MDoc(elems: (String, MElement)*) extends MElement {
     override def toString: String = elems.map(e => e._1.toString + ": " + e._2.toString).mkString("{", ", ", "}")
   }
+  object MDoc {
+    def apply(elems: (String, MElement)*): MDoc = new MDoc(elems:_*)
+  }
+
+  def and(elems: (String, MElement)*): (String, MArray) = "$and" -> MArray(elems.map(MDoc(_)):_*)
 
   // implicit functions
   object implicits {
@@ -33,7 +37,14 @@ object MongoPipeline {
 
     implicit def arrayToMelem(elems: Seq[MElement]): MElement = MArray(elems: _*)
 
-    implicit def mapToMelem(elems: Seq[(String, MElement)]): MElement = MDoc(elems: _*)
+    implicit def strMapToMelem(map: Map[String, String]): MDoc = MDoc(map.mapValues(strToMelem).toSeq:_*)
+
+    implicit def intMapToMelem(map: Map[String, Int]): MDoc = MDoc(map.mapValues(intToMelem).toSeq:_*)
+
+    implicit def arrayMapToMelem(map: Map[String, Seq[MElement]]): MDoc = MDoc(map.mapValues(arrayToMelem).toSeq:_*)
+
+    /*
+    implicit def mapToMelem[T](elems: Seq[(String, T)]): MElement = MDoc(elems: _*)
 
     def elemident(melement: MElement): MElement = melement
 
@@ -45,6 +56,8 @@ object MongoPipeline {
     implicit def aarrayToMelem(elems: (String, Seq[MElement])): (String, MElement) = (elems._1, MArray(elems._2:_*))
 
     implicit def amapToMelem(elems: (String, Seq[(String, MElement)])): (String, MElement) = (elems._1,  MDoc(elems._2:_*))
+
+     */
   }
 
   case class Stage(name: String, value: MElement) {

@@ -69,7 +69,7 @@ class BuoyProcessor {
 
   def retrieveMeasurements(buoyId: String, cycleNum: String): Ep3DataJsonWrapper = {
     val result = MongoPipeline()
-      .Match("$and" -> MArray(MDoc("floatSerialNo" -> buoyId), MDoc("cycleNumber" -> cycleNum.toInt)))
+      .Match(and("floatSerialNo" -> buoyId, "cycleNumber" -> cycleNum.toInt))
       .Project("pressureValues" -> "$PRES", "saltinessValues" -> "$PSAL", "temperatureValues" -> "$TEMP")
       .run(source).toDS[Measurements].collect()(0)
     Ep3DataJsonWrapper(result)
