@@ -1,5 +1,7 @@
 package com.example.app
+
 import com.example.app.storage.BuoyProcessor
+import scala.io.Source
 import org.scalatra._
 
 // JSON-related libraries
@@ -14,25 +16,30 @@ class MyScalatraServlet extends ScalatraServlet with JacksonJsonSupport {
   val bprocessor: BuoyProcessor = new BuoyProcessor
 
   /**
-    * Sets up automatic case class to JSON output serialization, required by
-    * the JValueResult trait
-    */
+   * Sets up automatic case class to JSON output serialization, required by
+   * the JValueResult trait
+   */
   protected implicit lazy val jsonFormats: Formats = DefaultFormats.withBigDecimal
 
   /**
-    * The content type of the HTTP response is always adjusted to JSON
-    */
+   * The content type of the HTTP response is always adjusted to JSON
+   */
   before() {
     contentType = formats("json")
   }
 
-  options("/*"){
+  options("/*") {
     response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"))
+  }
+
+  get("/") {
+    contentType = formats("html")
+    response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"))
+    Source.fromFile("src/main/resources/html/index.html").getLines.mkString
   }
 
   get("/last_coordinates") {
     response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"))
-    //val processor: FloatProcessor = new FloatProcessor
     bprocessor.retrieveCoordinatesAndIDs
   }
 

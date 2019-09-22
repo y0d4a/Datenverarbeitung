@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        pre code {
+            background-color: #eee;
+            border: 1px solid #999;
+            border-radius: 4px;
+            display: block;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+<h1><strong>Welcome to the REST API of Ecco Project HTW!</strong></h1>
+<h3>Supported endpoints (all in JSON format):</h3>
+<ul>
+    <li><span style="font-family: monospace;"><em>GET</em> <strong>/last_coordinates</strong></span>
+        <pre class="default prettyprint prettyprinted"><code><span class="pun">{</span><span class="pln">
+  </span><span class="str">"data"</span><span class="pln">  </span><span class="pun">:</span><span class="pln"> Array of {<br/>                       "id"          : String,<br/>                       "coordinates" : {<br/><span
+                class="pun">                                         "longitude"   : number,<br/>                                         "latitude"    : number</span></span><span
+                class="pun"><br/>                                       }<br/>                     }<br/>}</span><span
+                class="pun"></span></code></pre>
+    </li>
+    <li><span style="font-family: monospace;"><em>GET</em> <strong>/measurements/{float_id}</strong><br/></span>
+        <pre class="default prettyprint prettyprinted"><code><span class="pun">{</span><span class="pln">
+  </span><span class="str">"data"</span><span class="pln">  </span><span class="pun">:</span><span class="pln"> {<br/>              "saltinessValues"   : Array of </span><span
+                class="typ">numbers,<br/></span><span class="pun"></span><span class="pln">
+              </span><span class="str">"pressureValues"</span><span class="pln">    </span><span
+                class="pun">:</span><span class="pln"> </span><span class="pun"><span class="pln">Array of </span><span
+                class="typ">numbers</span>,<br/></span><span class="pln">
+              </span><span class="str">"temperatureValues"</span><span class="pln"> </span><span
+                class="pun">:</span><span class="pln"> <span class="pun">Array of <span
+                class="typ">numbers</span></span></span><span class="pun">,<br/></span><span class="pln">
+              </span><span class="str">"path"</span><span class="pln">              </span><span
+                class="pun">:</span><span class="pln"> </span><span class="typ">Array</span><span class="pun"> of {<br/>                                               "longitude"   : number,<br/>                                               "latitude"    : number,<br/>                                               "cycleNumber" : number<br/>                                             }<br/>            }<br/>}</span><span
+                class="pun"></span></code></pre>
+    </li>
+    <li><span style="font-family: monospace;"><em>GET</em> <strong>/measurements/{float_id}/{cycle_num}</strong></span>
+        <pre class="default prettyprint prettyprinted"><code><span class="pun">{</span><span class="pln">
+  </span><span class="str">"data"</span><span class="pln">  </span><span class="pun">:</span><span class="pln"> {<br/>              "saltinessValues"   : Array of </span><span
+                class="typ">numbers,<br/></span><span class="pun"></span><span class="pln">
+              </span><span class="str">"pressureValues"</span><span class="pln">    </span><span
+                class="pun">:</span><span class="pln"> </span><span class="pun"><span class="pln">Array of </span><span
+                class="typ">numbers</span>,<br/></span><span class="pln">
+              </span><span class="str">"temperatureValues"</span><span class="pln"> </span><span
+                class="pun">:</span><span class="pln"> <span class="pun">Array of <span
+                class="typ">numbers</span></span></span><span class="pln"></span><span
+                class="pun"><br/>            }<br/>}</span><span class="pun"></span></code></pre>
+    </li>
+</ul>
+</body>
+</html>
